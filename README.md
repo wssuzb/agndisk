@@ -6,7 +6,7 @@ accretion disk model,
 - line-driven wind model, [Laor et al., 2014](https://ui.adsabs.harvard.edu/abs/2014MNRAS.438.3024L/abstract).
 
 - TODO:
-  - X-ray reprocessing model .
-  - lightcurves generation.
+  - X-ray reprocessing model and then lightcurves generation.
+  - Julia and Python version.
 
 - NOTE: the code is still rudimentary for now, and the paper is in preparation (Su et al., 2023).
