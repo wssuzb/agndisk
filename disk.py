@@ -7,6 +7,7 @@ from astropy import constants as con
 Author: Zhenbo SU @ USTC
 Mail: zbsu@mail.ustc.edu.cn
 """
+
 con_hp = 6.62606957e-27
 con_kb = 1.3806488e-16
 con_c = 29979245800.0
@@ -179,7 +180,6 @@ class WindDisk:
 
         return self.disk_mdot_in
 
-
 class ThinDisk:
     
     def __init__(self, mbh, mdot, rin, fracring, rratio, eps=0, grav=False) -> None:
@@ -237,3 +237,47 @@ class ThinDisk:
                 self.sed += tmp_sed
 
         return True
+
+
+    def grthindik(self):
+        rin_zones = np.zeros(self.fracring)
+        rout_zones = np.zeros(self.fracring)
+        wrf = np.zeros(self.fracring)
+        
+        flux = np.zeros(self.fracring)
+        wrf[0] = 0
+
+        rin_zones[0] = self.rin
+        
+        rout_zones[0] = self.rin * self.rratio
+        for i in range(self.fracring - 1):
+            rin_zones[i+1] = rin_zones[i] * self.rratio
+            rout_zones[i+1] = rout_zones[i] * self.rratio
+        
+        rmid_zones = np.sqrt(rin_zones * rout_zones) 
+        
+        area_zones = np.pi * (rout_zones ** 2 - rin_zones ** 2) * (self.rgravcm **2 )
+        
+        self.radius = rmid_zones
+        radius_cm = rmid_zones * self.rgravcm
+        # print(radius_cm)
+        self.area = area_zones
+        
+        # fr = 1 - np.sqrt(self.rin / self.radius)
+        aspin = 0
+        rms = self.rin
+        C = 1 - 3/2/self.radius + 2 * aspin * (np.sqrt(1 / (8 * self.radius ** 3)))
+        
+        r1 = np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)) - np.pi / 3)
+        r2 = np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)) + np.pi / 3)
+        r3 = - np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)))
+        
+        fr = 1 / (C * np.sqrt(self.radius)) * (
+            np.sqrt(self.radius) - np.sqrt(rms) - 3/2/np.sqrt(2) * aspin * np.log(np.sqrt(self.radius) / np.sqrt(rms)) - 3/2 * ((np.sqrt(r1) - aspin) ** 2 / (np.sqrt(r1) * (np.sqrt(r1) - np.sqrt(r2)) * (np.sqrt(r1) - np.sqrt(r3))) * np.log((np.sqrt(self.radius) - np.sqrt(r1)) / (np.sqrt(rms) - np.sqrt(r1)))) - 
+            3/2 * ((np.sqrt(r2) - aspin) ** 2 / (np.sqrt(r2)*(np.sqrt(r2) - np.sqrt(r1))*(np.sqrt(r2)-np.sqrt(r3)))) * np.log((np.sqrt(self.radius) - np.sqrt(r2)) / (np.sqrt(rms) - np.sqrt(r2))) - 3/2 * ((np.sqrt(r3) - aspin) ** 2 / (np.sqrt(r3) * (np.sqrt(r3) - np.sqrt(r1)) * (np.sqrt(r3) - np.sqrt(r2)))) * np.log((np.sqrt(self.radius) - np.sqrt(r3)) / (np.sqrt(rms) - np.sqrt(r3)))
+        )
+
+        flux = 3 / 8 / np.pi * (G * self.bhmass * self.disk_mdot / radius_cm ** 3) * (fr)
+        teff = (flux / 5.67e-5) ** 0.25
+
+        return teff

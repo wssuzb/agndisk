@@ -8,5 +8,6 @@ accretion disk model,
 - TODO:
   - X-ray reprocessing model and then lightcurves generation.
   - Julia and Python version.
-
+  - Relativistic corrections, see Kato+08, p150.
+  
 - NOTE: the code is still rudimentary for now, and the paper is in preparation (Su et al., 2023).
