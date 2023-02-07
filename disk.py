@@ -54,6 +54,11 @@ def blackbody_cgs(wavelength_in_bb, temp):
             np.expm1(tmp / wavelength_in_bb))  # [erg/s/cm^2/cm]
     return sed * 1.E-8  # [erg/s/cm^2/A]
 
+def rms(aspin):
+    z1 = 1 + np.power(1 - aspin ** 2, 1/3) * (np.power(1 + aspin, 1/3) + np.power(1 - aspin, 1/3))
+    z2 = np.sqrt(3 * np.power(aspin, 2) + np.power(z1, 2))
+    rms = 0.5 * (3 + z2 - np.sqrt((3-z1)*(3+z1+2*z2))) # in rg.
+    return rms
 
 class WindDisk:
     
@@ -104,9 +109,7 @@ class WindDisk:
         rmid_zones = np.sqrt(rin_zones * rout_zones)
         # print(rmid_zones)
 
-        
-
-        area_zones = np.pi * (rout_zones ** 2 - rin_zones ** 2) * (self.rgravcm **2 )
+        area_zones = np.pi * (rout_zones ** 2 - rin_zones ** 2) * (self.rgravcm ** 2)
         
         self.radius = rmid_zones
         radius_cm = rmid_zones * self.rgravcm
@@ -122,7 +125,6 @@ class WindDisk:
 
         else:
             for i in range(self.fracring - 1):
-
                 flux[i] = 0.75 * wrf[i] * (G * self.bhmass / radius_cm[i] ** 3) ** 0.5
                 
                 mdot[i+1] = mdot[i] + (radius_cm[i+1] - radius_cm[i]) * (4 * np.pi * radius_cm[i]) * 2.6e-12 * (flux[i] / 6.3e10) ** 1.9 / mdot_ucvt
@@ -236,10 +238,10 @@ class ThinDisk:
                 tmp_sed = area_zones[i_area] * blackbody_cgs(self.wavelength, self.teff[i_area])
                 self.sed += tmp_sed
 
-        return True
+        return self.teff
 
 
-    def grthindik(self):
+    def grthindisk(self, aspin=0, calsed=True):
         rin_zones = np.zeros(self.fracring)
         rout_zones = np.zeros(self.fracring)
         wrf = np.zeros(self.fracring)
@@ -256,28 +258,41 @@ class ThinDisk:
         
         rmid_zones = np.sqrt(rin_zones * rout_zones) 
         
-        area_zones = np.pi * (rout_zones ** 2 - rin_zones ** 2) * (self.rgravcm **2 )
+        area_zones = np.pi * (rout_zones ** 2 - rin_zones ** 2) * (self.rgravcm **2)
         
         self.radius = rmid_zones
         radius_cm = rmid_zones * self.rgravcm
         # print(radius_cm)
         self.area = area_zones
         
-        # fr = 1 - np.sqrt(self.rin / self.radius)
-        aspin = 0
+        
+        # aspin = 0.2
         rms = self.rin
-        C = 1 - 3/2/self.radius + 2 * aspin * (np.sqrt(1 / (8 * self.radius ** 3)))
         
-        r1 = np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)) - np.pi / 3)
-        r2 = np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)) + np.pi / 3)
-        r3 = - np.sqrt(2) * np.cos(1 / (3 * np.cos(aspin)))
+        C = 1 - 3/2/self.radius + 2 * aspin * np.sqrt(1 / (8 * np.power(self.radius, 3)))
         
-        fr = 1 / (C * np.sqrt(self.radius)) * (
-            np.sqrt(self.radius) - np.sqrt(rms) - 3/2/np.sqrt(2) * aspin * np.log(np.sqrt(self.radius) / np.sqrt(rms)) - 3/2 * ((np.sqrt(r1) - aspin) ** 2 / (np.sqrt(r1) * (np.sqrt(r1) - np.sqrt(r2)) * (np.sqrt(r1) - np.sqrt(r3))) * np.log((np.sqrt(self.radius) - np.sqrt(r1)) / (np.sqrt(rms) - np.sqrt(r1)))) - 
-            3/2 * ((np.sqrt(r2) - aspin) ** 2 / (np.sqrt(r2)*(np.sqrt(r2) - np.sqrt(r1))*(np.sqrt(r2)-np.sqrt(r3)))) * np.log((np.sqrt(self.radius) - np.sqrt(r2)) / (np.sqrt(rms) - np.sqrt(r2))) - 3/2 * ((np.sqrt(r3) - aspin) ** 2 / (np.sqrt(r3) * (np.sqrt(r3) - np.sqrt(r1)) * (np.sqrt(r3) - np.sqrt(r2)))) * np.log((np.sqrt(self.radius) - np.sqrt(r3)) / (np.sqrt(rms) - np.sqrt(r3)))
+        r1 = np.sqrt(2) * np.cos(1 / 3 * np.power(np.cos(aspin), -1) * np.pi/180 - np.pi / 3)
+        r2 = np.sqrt(2) * np.cos(1 / 3 * np.power(np.cos(aspin), -1) * np.pi/180 + np.pi / 3)
+        r3 = - np.sqrt(2) * np.cos(1 / 3 * np.power(np.cos(aspin), -1) * np.pi/180)
+    
+        # fr = 1 - np.sqrt(self.rin / self.radius)
+        # fr = 1 / (C * np.sqrt(self.radius)) * (
+        #     np.sqrt(self.radius) - np.sqrt(rms) - 3/2/np.sqrt(2) * aspin * np.log(np.sqrt(self.radius) / np.sqrt(rms)) - 3/2 * ((np.sqrt(r1) - aspin) ** 2 / (np.sqrt(r1) * (np.sqrt(r1) - np.sqrt(r2)) * (np.sqrt(r1) - np.sqrt(r3))) * np.log((np.sqrt(self.radius) - np.sqrt(r1)) / (np.sqrt(rms) - np.sqrt(r1)))) -     3/2 * ((np.sqrt(r2) - aspin) ** 2 / (np.sqrt(r2)*(np.sqrt(r2) - np.sqrt(r1))*(np.sqrt(r2)-np.sqrt(r3)))) * np.log((np.sqrt(self.radius) - np.sqrt(r2)) / (np.sqrt(rms) - np.sqrt(r2))) - 3/2 * ((np.sqrt(r3) - aspin) ** 2 / (np.sqrt(r3) * (np.sqrt(r3) - np.sqrt(r1)) * (np.sqrt(r3) - np.sqrt(r2)))) * np.log((np.sqrt(self.radius) - np.sqrt(r3)) / (np.sqrt(rms) - np.sqrt(r3)))
+        # )
+
+        self.fr =1 / (C * np.sqrt(self.radius)) * (
+            np.sqrt(self.radius) - np.sqrt(rms) - 3/2/np.sqrt(2) * aspin * np.log(np.sqrt(self.radius/rms)) - 3/2 * (r1 - aspin) ** 2 / (r1 * (r1-r2) * (r1-r3)) * np.log((np.sqrt(self.radius) - r1)/(np.sqrt(rms) - r1)) - 3/2 * (r2-aspin) ** 2 / (r2 * (r2 - r1) * (r2 - r3)) * np.log((np.sqrt(self.radius)-r2) / (np.sqrt(rms) - r2)) - 3/2 * (r3-aspin) ** 2 / (r3 * (r3-r1) * (r3-r2)) * np.log((np.sqrt(self.radius) - r3) / (np.sqrt(rms) - r3))
         )
 
-        flux = 3 / 8 / np.pi * (G * self.bhmass * self.disk_mdot / radius_cm ** 3) * (fr)
-        teff = (flux / 5.67e-5) ** 0.25
+        flux = 3 / 8 / np.pi * (G * self.bhmass * self.disk_mdot * mdot_ucvt / radius_cm ** 3) * (self.fr)
 
-        return teff
+        self.teff = (flux / 5.67e-5) ** 0.25
+        
+        if calsed:
+
+            self.sed = 0 * self.wavelength
+            for i_area in range(np.size(area_zones)):
+                tmp_sed = area_zones[i_area] * blackbody_cgs(self.wavelength, self.teff[i_area])
+                self.sed += tmp_sed
+
+        return self.teff
