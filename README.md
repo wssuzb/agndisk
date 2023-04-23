@@ -1,4 +1,5 @@
-## <img src="./test/logo.png" alt="logo" style="zoom:15%;" />Accretion Disk Around Black Hole
+## <img src="./test/logo.png" alt="logo" style="zoom:15%;" /> Accretion Disk Around Black Hole 
+
 
 ### General views
 
