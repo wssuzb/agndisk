@@ -1,4 +1,4 @@
-## <img src="/Users/suzhenbo/Mylibrary/Projects/jupyter_plot/disk/jl_version/AGNDisk/test/logo.png" alt="logo" style="zoom:15%;" />Accretion Disk Around Black Hole
+## <img src="./test/logo.png" alt="logo" style="zoom:15%;" />Accretion Disk Around Black Hole
 
 ### General views
 
@@ -30,13 +30,13 @@ showdata(p; fi_np="./sim_lumin") # Plot of data
 showdata(w; fi_np="./sim_lumin") # Plot of data
 ```
 
-![thindisk](./test/thindisk.png)![winddisk](/Users/suzhenbo/Mylibrary/Projects/jupyter_plot/disk/jl_version/AGNDisk/test/winddisk.png)
+![thindisk](./test/thindisk.png)![winddisk](./test/winddisk.png)
 
 ### TEST
 
 - For more info please see [Laor & Davis 2014](https://ui.adsabs.harvard.edu/abs/2014MNRAS.438.3024L/abstract).
 
-![laor](/Users/suzhenbo/Mylibrary/Projects/jupyter_plot/disk/jl_version/AGNDisk/test/laor.png)
+![laor](./test/laor.png)
 
 
 
